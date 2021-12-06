@@ -1,0 +1,17 @@
+# This inventory defines a host called mail.example.com, a group called webservers 
+#   which has the hosts foo.example.com and bar.example.com and a group called 
+#   dbservers which as the hosts one.example.com, two.example.com and three.example.com.
+
+all:
+  hosts:
+    mail.example.com:
+  children:
+    webservers:
+      hosts:
+        foo.example.com:
+        bar.example.com:
+    dbservers:
+      hosts:
+        one.example.com:
+        two.example.com:
+        three.example.com:
