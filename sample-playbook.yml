@@ -1,3 +1,4 @@
+---
 - hosts: webservers #(1)
   remote_user: root #(2)
 
