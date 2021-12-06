@@ -1,0 +1,33 @@
+- hosts: webservers #(1)
+  remote_user: root #(2)
+
+  tasks:
+  - name: ensure apache is at the latest version #(3)
+    yum: #(4)
+      name: httpd
+      state: latest
+  - name: write the apache config file #(5)
+    template:
+      src: /srv/httpd.j2
+      dest: /etc/httpd.conf
+
+- hosts: databases #(6)
+  remote_user: root
+
+  tasks:
+  - name: ensure postgresql is at the latest version
+    yum:
+      name: postgresql
+      state: latest
+  - name: ensure that postgresql is started
+    service:
+      name: postgresql
+      state: started
+
+# 1) This line starts our first play and the hosts from our inventory that it will be applied to.
+# 2) This is the user that Ansible will use to connect to the host as via SSH and execute commands as.
+# 3) Here we start our first task. The task name is used to describe what are task does in Ansible's output.
+# 4) Here we are using the yum module for our task. The 2 lines following are parameters for the module which
+#    define httpd as package for yum to install. We will explain modules in more detail below.
+# 5) This line starts our 2nd task. Note that it is using a different module.
+# 6) This line starts our 2nd play which targets a different group of hosts.
