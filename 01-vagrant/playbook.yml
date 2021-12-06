@@ -2,7 +2,6 @@
 - hosts: all
   remote_user: root
   become: yes
-  # become_user: root
   
   tasks:
     - name: Download Long Term Jenkins release
