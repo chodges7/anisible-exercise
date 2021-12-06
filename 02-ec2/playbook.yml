@@ -1,0 +1,58 @@
+---
+- hosts: localhost
+  remote_user: root
+  become: yes
+  
+  tasks:
+    - name: Provision an ec2 instance with a public IP address
+      amazon.aws.ec2_instance:
+        aws_profile: admin-sandbox
+        name: christian-ansible
+        key_name: "~/.ssh/christian-keypair.pem"
+        security_group: christian-ansible
+        network:
+          assign_public_ip: true
+        image_id: ami-083f68207d3376798
+        tags:
+          Client: Internal
+          Owner: Christian
+          Project: Bootcamp
+      
+
+- hosts: ec2hosts
+  remote_user: ubuntu
+  become: yes
+
+  tasks:
+    - name: Download Long Term Jenkins release
+      apt_repository:
+        repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
+        state: present
+
+    - name: Import jenkins key from url
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+
+    - name: apt update
+      apt:
+        name: '*'
+        state: latest
+
+    - name: Install java
+      apt:
+        name: default-jre
+        state: present
+
+    - name: Install jenkins
+      apt:
+        name: jenkins
+        state: latest
+
+    - name: daemon-reload to pick up config changes
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Start jenkins
+      ansible.builtin.systemd:
+        name: jenkins
+        state: started
