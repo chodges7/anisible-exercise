@@ -5,27 +5,35 @@
   # become_user: root
   
   tasks:
-    - name: install java dependancy
+    - name: Download Long Term Jenkins release
+      apt_repository:
+        repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
+        state: present
+
+    - name: Import jenkins key from url
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+
+    - name: apt update
+      apt:
+        name: '*'
+        state: latest
+
+    - name: Install java
       apt:
         name: default-jre
-        update_cache: yes
-
-    - name: ensure the jenkins apt repo key is installed
-      apt_key:
-        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key 
         state: present
 
-    - name: ensure repo is correclty configured
-      apt_repo: 
-        repo: 'deb https://pkg.jenkins.io/debian-stable binary/' 
-        state: present
+    - name: Install jenkins
+      apt:
+        name: jenkins
+        state: latest
 
-    - name: ensure jenkins is correctly installed
-      apt: 
-        name: jenkins 
-        update_cache: yes
+    - name: daemon-reload to pick up config changes
+      ansible.builtin.systemd:
+        daemon_reload: yes
 
-    - name: ensure jenkins is running
-      service: 
-        name: jenkins 
+    - name: Start jenkins
+      ansible.builtin.systemd:
+        name: jenkins
         state: started
