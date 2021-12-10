@@ -1,0 +1,3 @@
+all:
+  vars:
+    aws_key: ~/.ssh/christian-keypair.pem
