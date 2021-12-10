@@ -13,15 +13,11 @@
       apt_key:
         url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
 
-    - name: apt update
-      apt:
-        name: '*'
-        state: latest
-
     - name: Install java
       apt:
         name: default-jre
         state: present
+        update_cache: true
 
     - name: Install jenkins
       apt:
