@@ -1,58 +1,93 @@
 ---
 - hosts: localhost
-  remote_user: root
-  become: yes
+  gather_facts: false
+  vars:
+    ansible_ssh_private_key_file: "{{ aws_key }}"
   
   tasks:
-    - name: Provision an ec2 instance with a public IP address
+
+    - name: provision an ec2 instance with a public IP address
       amazon.aws.ec2_instance:
-        aws_profile: admin-sandbox
         name: christian-ansible
-        key_name: "~/.ssh/christian-keypair.pem"
+        key_name: "{{ keypair_name }}"
+        instance_type: "{{ instance_type_var }}"
         security_group: christian-ansible
         network:
           assign_public_ip: true
-        image_id: ami-083f68207d3376798
+        image_id: "{{ ami_id }}"
         tags:
           Client: Internal
           Owner: Christian
           Project: Bootcamp
+      register: result
+
+    # When this is set the playbook will output debug info
+    - name: debug
+      debug: var=result
+
+    - name: Wait for ssh to come up
+      wait_for: 
+        host: "{{ item.public_dns_name }}"
+        port: 22 
+        delay: 10
+        timeout: 300
+      with_items: "{{ result.instances }}"
+
+    - name: Add all instance public IPs to host group
+      add_host: 
+        hostname: "{{ item.public_ip_address }}" 
+        groups: ec2hosts
+      loop: "{{ result.instances }}"
       
 
 - hosts: ec2hosts
   remote_user: ubuntu
   become: yes
+  gather_facts: true
+  vars:
+    ansible_ssh_private_key_file: "{{ aws_key }}"
 
   tasks:
-    - name: Download Long Term Jenkins release
+    - name: Update apt cache
+      apt:
+        update_cache: true
+
+    - name: Upgrade all apt packages
+      apt:
+        upgrade: dist
+
+    - name: Ensure the jenkins apt repository key is installed
+      apt_key: 
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+        state: present
+
+    - name: Ensure the repository is configured
       apt_repository:
         repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
         state: present
 
-    - name: Import jenkins key from url
-      apt_key:
-        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+    # - name: Download Long Term Jenkins release
+    #   get_url:
+    #     url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+    #     dest: /etc/yum.repos.d/jenkins.repo
 
-    - name: apt update
-      apt:
-        name: '*'
-        state: latest
+    # - name: Import jenkins key from url
+    #   ansible.builtin.rpm_key:
+    #     state: present
+    #     key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
 
-    - name: Install java
+    - name: Install jenkins + dependencies
       apt:
-        name: default-jre
+        name: "{{ item }}"
         state: present
+      loop:
+        - default-jre
+        - jenkins
 
-    - name: Install jenkins
-      apt:
-        name: jenkins
-        state: latest
+    # - name: collect facts about system services
+    #   service_facts:
+    #     register: services_state
 
-    - name: daemon-reload to pick up config changes
-      ansible.builtin.systemd:
-        daemon_reload: yes
-
-    - name: Start jenkins
-      ansible.builtin.systemd:
-        name: jenkins
-        state: started
+    # - name: Debug
+    #   debug:
+    #     var: services_state
