@@ -66,16 +66,6 @@
         repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
         state: present
 
-    # - name: Download Long Term Jenkins release
-    #   get_url:
-    #     url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
-    #     dest: /etc/yum.repos.d/jenkins.repo
-
-    # - name: Import jenkins key from url
-    #   ansible.builtin.rpm_key:
-    #     state: present
-    #     key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
-
     - name: Install jenkins + dependencies
       apt:
         name: "{{ item }}"
@@ -83,11 +73,3 @@
       loop:
         - default-jre
         - jenkins
-
-    # - name: collect facts about system services
-    #   service_facts:
-    #     register: services_state
-
-    # - name: Debug
-    #   debug:
-    #     var: services_state
