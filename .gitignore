@@ -1,3 +1,6 @@
 .vagrant
 *.swp
+*.log.terraform
+.terraform.*
+.terraform/
 *.log
