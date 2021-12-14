@@ -49,3 +49,13 @@ resource "aws_instance" "christian-terraform" {
         Name = "christian-terraform-instance",
     }
 }
+
+// https://stackoverflow.com/questions/45489534/best-way-currently-to-create-an-ansible-inventory-from-terraform
+// From thedonatello
+resource "local_file" "inventory" {
+  content = templatefile("inventory.tmpl", { content = tomap({ 
+    "aws_instance.christian-terraform.tags.Name" = aws_instance.christian-terraform.public_dns 
+    })
+  })
+  filename = format("%s/%s", abspath(path.root), "inventory.yml")
+}

@@ -4,5 +4,6 @@ all:
     ami_id: ami-053ac55bdcfe96e85
     instance_type_var: t2.micro
     keypair_name: "christian-keypair"
-
-  ec2hosts: ec2-54-153-14-200.us-west-1.compute.amazonaws.com
+%{ for content_key, content_value in content }
+  ec2hosts: ${content_value}  
+%{~ endfor ~}
