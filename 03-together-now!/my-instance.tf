@@ -58,4 +58,8 @@ resource "local_file" "inventory" {
     })
   })
   filename = format("%s/%s", abspath(path.root), "inventory.yml")
+
+  provisioner "local-exec" {
+    command = "ansible-playbook playbook.yml -i inventory.yml"
+  }
 }
